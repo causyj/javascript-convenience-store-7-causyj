@@ -1,12 +1,19 @@
-import { Console } from '@woowacourse/mission-utils';
 import readFile from '../utils/fileUtils.js';
+import Products from '../models/Products.js';
 
 class ProductService {
   constructor() {
-    this.products = this.loadProducts();
+    this.products = this.#loadProducts();
   }
 
-  loadProducts() {
+  #isPromotionActive(promotion) {
+    if (promotion.trim() === 'null') {
+      return '';
+    }
+    return promotion.trim();
+  }
+
+  #loadProducts() {
     const data = readFile('products.md');
     const lines = data
       .split('\n')
@@ -14,15 +21,9 @@ class ProductService {
       .filter((line) => line.trim() !== '');
     return lines.map((line) => {
       const [name, price, quantity, promotion] = line.split(',');
-
-      return this.print({ name, price, quantity, promotion });
+      const formattedPromotion = this.#isPromotionActive(promotion);
+      return new Products(name, price, quantity, formattedPromotion);
     });
-  }
-
-  print({ name, price, quantity, promotion }) {
-    Console.print(
-      `name : ${name}, price : ${price}, quantity : ${quantity}, promotion  : ${promotion}`,
-    );
   }
 
   getAllProducts() {
