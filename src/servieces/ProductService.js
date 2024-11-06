@@ -1,5 +1,6 @@
 import readFile from '../utils/fileUtils.js';
 import Products from '../models/Products.js';
+import FileContentsValidator from '../validators/FileContentsValidator.js';
 
 class ProductService {
   constructor() {
@@ -13,17 +14,41 @@ class ProductService {
     return promotion.trim();
   }
 
+  #validateProductAttributes(name, price, quantity, promotion) {
+    const formattedPromotion = this.#isPromotionActive(promotion);
+    FileContentsValidator.validateProductData(
+      name,
+      price,
+      quantity,
+      formattedPromotion,
+    );
+    return { name, price, quantity, formattedPromotion };
+  }
+
+  #parseProductAttributes(line) {
+    const [name, price, quantity, promotion] = line.split(',');
+    const {
+      name: validatedName,
+      price: validatedPrice,
+      quantity: validatedQuantity,
+      formattedPromotion,
+    } = this.#validateProductAttributes(name, price, quantity, promotion);
+    return new Products(
+      validatedName,
+      Number(validatedPrice),
+      Number(validatedQuantity),
+      formattedPromotion,
+    );
+  }
+
   #loadProducts() {
     const data = readFile('products.md');
     const lines = data
       .split('\n')
       .slice(1)
       .filter((line) => line.trim() !== '');
-    return lines.map((line) => {
-      const [name, price, quantity, promotion] = line.split(',');
-      const formattedPromotion = this.#isPromotionActive(promotion);
-      return new Products(name, price, quantity, formattedPromotion);
-    });
+
+    return lines.map((line) => this.#parseProductAttributes(line));
   }
 
   getAllProducts() {
