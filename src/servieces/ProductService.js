@@ -47,6 +47,7 @@ class ProductService {
       .split('\n')
       .slice(1)
       .filter((line) => line.trim() !== '');
+    lines.forEach((line) => FileContentsValidator.validateLineFormat(line));
 
     return lines.map((line) => this.#parseProductAttributes(line));
   }
