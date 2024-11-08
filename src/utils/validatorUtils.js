@@ -1,3 +1,11 @@
+export const isZeroOrPositiveInteger = (number) => {
+  return (
+    !Number.isNaN(Number(number)) &&
+    Number.isInteger(Number(number)) &&
+    Number(number) >= 0
+  );
+};
+
 export const isValidatePositiveInteger = (number) => {
   return (
     !Number.isNaN(Number(number)) &&

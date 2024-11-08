@@ -2,7 +2,7 @@ import Products from '../models/Products.js';
 import FileContentsValidator from '../validators/FileContentsValidator.js';
 import { getLinesFromFile } from '../utils/fileUtils.js';
 
-class ProductService {
+class InventoryService {
   constructor() {
     this.promotions = this.#loadPromotions();
     this.products = this.#loadProducts();
@@ -80,5 +80,15 @@ class ProductService {
   getAllProducts() {
     return this.products;
   }
+
+  getProductsNameList() {
+    return this.products.map((product) => product.name);
+  }
+
+  getProductQuantity(name) {
+    return this.products
+      .filter((product) => product.name === name)
+      .reduce((total, product) => total + product.quantity, 0);
+  }
 }
-export default ProductService;
+export default InventoryService;

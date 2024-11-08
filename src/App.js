@@ -1,9 +1,14 @@
+import { Console } from '@woowacourse/mission-utils';
 import CStoreController from './controllers/CStoreController.js';
 
 class App {
   async run() {
-    const cstoreController = new CStoreController();
-    cstoreController.start();
+    try {
+      const cstoreController = new CStoreController();
+      cstoreController.start();
+    } catch (error) {
+      Console.print(error.message);
+    }
   }
 }
 

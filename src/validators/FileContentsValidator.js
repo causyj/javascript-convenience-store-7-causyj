@@ -4,6 +4,7 @@ import {
   isValidateNameString,
   isValidatePositiveInteger,
   isValidatePromotionString,
+  isZeroOrPositiveInteger,
 } from '../utils/validatorUtils.js';
 
 class FileContentsValidator {
@@ -39,7 +40,7 @@ class FileContentsValidator {
     if (!isValidatePositiveInteger(price)) {
       throw new Error(`[ERROR] 상품 가격은 양수여야 합니다`);
     }
-    if (!isValidatePositiveInteger(quantity)) {
+    if (!isZeroOrPositiveInteger(quantity)) {
       throw new Error(`[ERROR] 상품 수량은 양수여야 합니다.`);
     }
     if (!isValidatePromotionString(promotion)) {
