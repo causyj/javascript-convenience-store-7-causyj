@@ -51,13 +51,22 @@ class CheckoutService {
 
   calculateFinalPrices(items) {
     return items.map(({ product, quantity, freeItems }) => {
-      const discount = freeItems * product.price;
+      const free = product.promotion === '' ? 0 : freeItems;
+      const discount = free * product.price;
       return {
         ...product,
         discount,
         finalPrice: product.price * quantity - discount,
       };
     });
+  }
+
+  calculateMembershipDiscount(items) {
+    const nonPromotionTotal = items
+      .filter((item) => item.discount === 0)
+      .reduce((total, item) => total + item.finalPrice, 0);
+    const membershipDiscount = Math.min(nonPromotionTotal * 0.3, 8000);
+    return membershipDiscount;
   }
 }
 export default CheckoutService;

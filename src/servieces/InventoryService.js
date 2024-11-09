@@ -58,12 +58,13 @@ class InventoryService {
       quantity: validatedQuantity,
       formattedPromotion,
     } = this.#validateProductAttributes(name, price, quantity, promotion);
+    const promotionStock = promotion === '' ? 0 : Number(validatedQuantity);
     return new Products(
       validatedName,
       Number(validatedPrice),
       Number(validatedQuantity),
       formattedPromotion,
-      Number(validatedQuantity),
+      promotionStock,
     );
   }
 

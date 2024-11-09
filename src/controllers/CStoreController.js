@@ -1,5 +1,3 @@
-// 일반 재고에서만 차감 안될 때
-
 /* eslint-disable max-lines-per-function */
 import { Console } from '@woowacourse/mission-utils';
 import InventoryService from '../servieces/InventoryService.js';
@@ -25,13 +23,10 @@ class CStoreController {
   //   }
   // }
 
-  // eslint-disable-next-line max-lines-per-function
   async start() {
     this.#printProductList();
     const items = await this.#getUserPurchaseItems();
-
     const finalItems = await this.#processItemsWithpromotion(items);
-    Console.print(finalItems);
     finalItems.forEach(({ product, quantity }) => {
       product.reduceStock(quantity);
     });
@@ -42,7 +37,20 @@ class CStoreController {
         product.discount > 0 ? ` (할인 적용: -${product.discount}원)` : '';
       Console.print(`${product.name}: ${product.finalPrice}원${discountText}`);
     });
-    Console.print(finalItems);
+    const membershipDiscount = await this.#applyMembershipDiscount(
+      productsWithPromotion,
+    );
+    Console.print(`membershipDiscount : ${membershipDiscount}`);
+  }
+
+  async #applyMembershipDiscount(products) {
+    const membershipInput = await this.inputView.getUserMembershipInput();
+    const isMember = membershipInput === 'Y';
+
+    if (!isMember) return;
+
+    // eslint-disable-next-line consistent-return
+    return this.checkoutService.calculateMembershipDiscount(products);
   }
 
   #isPromotionValid(product) {

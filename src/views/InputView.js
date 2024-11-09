@@ -21,5 +21,12 @@ class InputView {
     );
     return input;
   }
+
+  async getUserMembershipInput() {
+    const input = await Console.readLineAsync(
+      '멤버십 할인을 받으시겠습니까? (Y/N) \n',
+    );
+    return input;
+  }
 }
 export default InputView;
