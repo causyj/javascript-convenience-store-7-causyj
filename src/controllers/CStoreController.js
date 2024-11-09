@@ -106,7 +106,7 @@ class CStoreController {
           Math.floor(
             quantity / (promotionResult.buyAmount + promotionResult.freeAmount),
           ) * promotionResult.freeAmount;
-      Console.print(`freeItems: ${freeItems}`);
+
       return [
         {
           product,
@@ -129,8 +129,6 @@ class CStoreController {
       const promotion = this.inventoryService.getPromotionsByName(
         productWithPromotion.promotion,
       );
-      Console.print(`quantity 이게 뭐람
-         : ${quantity}`);
       const promotionResult = this.checkoutService.isPromotionApplicable(
         productWithPromotion,
         promotion.buyAmount,

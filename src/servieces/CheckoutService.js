@@ -57,6 +57,7 @@ class CheckoutService {
         ...product,
         discount,
         finalPrice: product.price * quantity - discount,
+        freeItems,
       };
     });
   }

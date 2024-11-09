@@ -28,16 +28,19 @@ class OutputView {
 
     let totalPurchaseAmount = 0;
     let totalPromotionDiscount = 0;
-
+    let count = 0;
     // 구매 상품 목록 및 행사할인
-    productsWithPromotion.forEach(({ name, finalPrice, discount }) => {
+    for (let i = 0; i < productsWithPromotion.length; i++) {
+      const { name, finalPrice, discount } = productsWithPromotion[i];
+      const { quantity } = products[i]; // products 배열의 순서에 맞게 접근
+
       totalPurchaseAmount += finalPrice + discount;
       totalPromotionDiscount += discount;
-      products.forEach((item) => {
-        Console.print(`${name}\t\t${item.quantity}\t${finalPrice}`);
-      });
-      //  Console.print(`${name}\t\t${quantity}\t${finalPrice}`);
-    });
+
+      // 각 product와 일치하는 순서의 quantity 출력
+      Console.print(`${name}\t\t${quantity}\t${finalPrice}`);
+      count += quantity;
+    }
 
     // 증정 상품 목록 출력
     Console.print('==============증  정================');
@@ -53,7 +56,7 @@ class OutputView {
     const totalDiscount = totalPromotionDiscount + membershipDiscount;
     const finalPayment = totalPurchaseAmount - totalDiscount;
 
-    Console.print(`총구매액\t\t${totalPurchaseAmount}`);
+    Console.print(`총구매액\t${count}\t${totalPurchaseAmount}`);
     Console.print(`행사할인\t\t-${totalPromotionDiscount}`);
     Console.print(`멤버십할인\t\t-${membershipDiscount}`);
     Console.print(`내실돈\t\t\t ${finalPayment}`);
