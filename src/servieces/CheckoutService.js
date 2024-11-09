@@ -20,14 +20,25 @@ class CheckoutService {
     Console.print(`extraRequired : ${extraRequired}`);
     const promotionStockSufficient =
       productWithPromotion.promotionStock >= quantity + extraRequired;
-    const maxFreeItems =
-      Math.floor((quantity + extraRequired) / (buyAmount + freeAmount)) *
-      freeAmount;
+
+    Console.print(`promotionStockSufficient:${promotionStockSufficient}`);
     const partialPromotion = !promotionStockSufficient;
     const remainingQuantity = promotionStockSufficient
       ? 0
       : quantity + extraRequired - productWithPromotion.promotionStock;
+    // const maxFreeItems =
+    //   Math.floor((quantity + extraRequired) / (buyAmount + freeAmount)) *
+    //   freeAmount;
 
+    const maxFreeItems =
+      productWithPromotion.promotionStock < quantity
+        ? Math.floor(
+            (productWithPromotion.promotionStock - extraRequired) /
+              (buyAmount + freeAmount),
+          ) * Number(freeAmount)
+        : Math.floor((quantity + extraRequired) / (buyAmount + freeAmount)) *
+          Number(freeAmount);
+    Console.print(`maxFreeItems : ${maxFreeItems}`);
     return {
       extraRequired,
       partialPromotion,

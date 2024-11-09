@@ -49,6 +49,7 @@ class InventoryService {
     );
   }
 
+  // eslint-disable-next-line max-lines-per-function
   #parseProductAttributes(line) {
     const [name, price, quantity, promotion] = line.split(',');
     const {
@@ -62,6 +63,7 @@ class InventoryService {
       Number(validatedPrice),
       Number(validatedQuantity),
       formattedPromotion,
+      Number(validatedQuantity),
     );
   }
 
@@ -100,6 +102,40 @@ class InventoryService {
     return this.promotions.find((promotion) => promotion.name === name);
   }
 
+  // eslint-disable-next-line no-dupe-class-members, max-lines-per-function
+  getProductsCombinedQuantity(name) {
+    const matchedProducts = this.products.filter(
+      (product) => product.name === name,
+    );
+
+    if (matchedProducts.length === 0) {
+      return null;
+    }
+
+    // 동일한 이름을 가진 제품들의 수량을 합치고, 프로모션은 있는 항목으로 설정
+    const combinedData = matchedProducts.reduce((acc, product) => {
+      acc.quantity += product.quantity;
+
+      // 첫 번째 프로모션이 있는 제품의 promotion과 promotionStock을 유지
+      if (!acc.promotion && product.promotion) {
+        acc.promotion = product.promotion;
+        acc.promotionStock = product.promotionStock;
+      }
+
+      return acc;
+    });
+
+    // Products 클래스의 인스턴스로 반환, promotionStock도 전달
+    const combinedProduct = new Products(
+      combinedData.name,
+      combinedData.price,
+      combinedData.quantity,
+      combinedData.promotion,
+      combinedData.promotionStock,
+    );
+
+    return [combinedProduct];
+  }
   // checkPromotionPeriod2(promotion) {
   //   const currentDate = DateTimes.now();
   //   const e = promotion.startDate;

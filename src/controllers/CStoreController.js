@@ -1,3 +1,5 @@
+// 일반 재고에서만 차감 안될 때
+
 /* eslint-disable max-lines-per-function */
 import { Console } from '@woowacourse/mission-utils';
 import InventoryService from '../servieces/InventoryService.js';
@@ -30,6 +32,9 @@ class CStoreController {
 
     const finalItems = await this.#processItemsWithpromotion(items);
     Console.print(finalItems);
+    finalItems.forEach(({ product, quantity }) => {
+      product.reduceStock(quantity);
+    });
     const productsWithPromotion =
       this.checkoutService.calculateFinalPrices(finalItems);
     productsWithPromotion.forEach((product) => {
@@ -37,6 +42,7 @@ class CStoreController {
         product.discount > 0 ? ` (할인 적용: -${product.discount}원)` : '';
       Console.print(`${product.name}: ${product.finalPrice}원${discountText}`);
     });
+    Console.print(finalItems);
   }
 
   #isPromotionValid(product) {
@@ -51,15 +57,22 @@ class CStoreController {
   // 3
   async #handlePromotionResult(promotionResult, product, quantity) {
     if (promotionResult.partialPromotion) {
-      Console.print(`here `);
-
       const userResponse =
         await this.inputView.getUserConfirmationWithoutPromotion(
           product.name,
           promotionResult.remainingQuantity,
         );
-      const isConfirmed = String(userResponse).trim().toUpperCase() === 'Y';
-      return isConfirmed ? [{ product, quantity }] : [];
+      const isConfirmed = userResponse === 'Y';
+      const freeItems =
+        quantity > product.quantity
+          ? Math.floor(
+              product.quantity /
+                (promotionResult.buyAmount + promotionResult.freeAmount),
+            ) * promotionResult.freeAmount
+          : promotionResult.maxFreeItems;
+      return isConfirmed
+        ? [{ product, quantity, freeItems }]
+        : [{ product, quantity: 0, freeItems: 0 }];
     }
 
     if (promotionResult.extraRequired) {
@@ -94,12 +107,15 @@ class CStoreController {
   // 2
   async #processSingleItemWithPromotion(item) {
     const { name, quantity } = item;
-    const products = this.inventoryService.getProductsByName(name);
+    // const products = this.inventoryService.getProductsByName(name);
+    const products = this.inventoryService.getProductsCombinedQuantity(name);
     const productWithPromotion = products.find((p) => p.promotion);
     if (productWithPromotion && this.#isPromotionValid(productWithPromotion)) {
       const promotion = this.inventoryService.getPromotionsByName(
         productWithPromotion.promotion,
       );
+      Console.print(`quantity 이게 뭐람
+         : ${quantity}`);
       const promotionResult = this.checkoutService.isPromotionApplicable(
         productWithPromotion,
         promotion.buyAmount,
