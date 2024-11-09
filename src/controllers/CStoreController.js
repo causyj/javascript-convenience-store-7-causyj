@@ -46,6 +46,8 @@ class CStoreController {
       productsWithPromotion,
       membershipDiscount || 0,
     );
+    const additionalPurchase = await this.inputView.askForAdditionalPurchase();
+    Console.print(`additionalPurchase: ${additionalPurchase}`);
   }
 
   async #applyMembershipDiscount(products) {

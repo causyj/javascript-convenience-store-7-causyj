@@ -28,5 +28,12 @@ class InputView {
     );
     return input;
   }
+
+  async askForAdditionalPurchase() {
+    const input = await Console.readLineAsync(
+      '\n감사합니다. 구매하고 싶은 다른 상품이 있나요? (Y/N)\n',
+    );
+    return input;
+  }
 }
 export default InputView;
