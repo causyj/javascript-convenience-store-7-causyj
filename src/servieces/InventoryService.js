@@ -1,6 +1,7 @@
 import Products from '../models/Products.js';
 import FileContentsValidator from '../validators/FileContentsValidator.js';
 import { getLinesFromFile } from '../utils/fileUtils.js';
+import Promotion from '../models/Promotion.js';
 
 class InventoryService {
   constructor() {
@@ -39,13 +40,13 @@ class InventoryService {
       startDate,
       endDate,
     );
-    return {
-      name: name.trim(),
-      buy: Number(buy),
-      get: Number(get),
-      startDate: startDate.trim(),
-      endDate: endDate.trim(),
-    };
+    return new Promotion(
+      name.trim(),
+      Number(buy),
+      Number(get),
+      startDate.trim(),
+      endDate.trim(),
+    );
   }
 
   #parseProductAttributes(line) {
@@ -90,5 +91,25 @@ class InventoryService {
       .filter((product) => product.name === name)
       .reduce((total, product) => total + product.quantity, 0);
   }
+
+  getProductsByName(name) {
+    return this.products.filter((product) => product.name === name);
+  }
+
+  getPromotionsByName(name) {
+    return this.promotions.find((promotion) => promotion.name === name);
+  }
+
+  // checkPromotionPeriod2(promotion) {
+  //   const currentDate = DateTimes.now();
+  //   const e = promotion.startDate;
+  //   const d = new Date(promotion.startDate);
+  //   Console.print(e);
+  //   Console.print(d);
+  //   return (
+  //     currentDate >= new Date(promotion.startDate) &&
+  //     currentDate <= new Date(promotion.endDate)
+  //   );
+  // }
 }
 export default InventoryService;
