@@ -40,7 +40,12 @@ class CStoreController {
     const membershipDiscount = await this.#applyMembershipDiscount(
       productsWithPromotion,
     );
-    Console.print(`membershipDiscount : ${membershipDiscount}`);
+
+    this.outputView.printFinalReceipt(
+      items,
+      productsWithPromotion,
+      membershipDiscount || 0,
+    );
   }
 
   async #applyMembershipDiscount(products) {

@@ -10,7 +10,7 @@ class InputView {
 
   async getUserConfirmationWithoutPromotion(productName, quantity) {
     const input = await Console.readLineAsync(
-      `현재 ${productName} ${quantity}개는 프로모션 할인이 적용되지 않습니다. 그래도 구매하시겠습니까? (Y/N) \n`,
+      `\n현재 ${productName} ${quantity}개는 프로모션 할인이 적용되지 않습니다. 그래도 구매하시겠습니까? (Y/N) \n`,
     );
     return input;
   }
@@ -24,7 +24,7 @@ class InputView {
 
   async getUserMembershipInput() {
     const input = await Console.readLineAsync(
-      '멤버십 할인을 받으시겠습니까? (Y/N) \n',
+      '\n멤버십 할인을 받으시겠습니까? (Y/N) \n',
     );
     return input;
   }
