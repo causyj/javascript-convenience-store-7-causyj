@@ -69,5 +69,33 @@ class CheckoutService {
     const membershipDiscount = Math.min(nonPromotionTotal * 0.3, 8000);
     return membershipDiscount;
   }
+
+  calculateFreeItems(product, promotionResult, quantity) {
+    if (quantity <= product.quantity) {
+      return promotionResult.maxFreeItems;
+    }
+    return (
+      Math.floor(
+        product.quantity /
+          (promotionResult.buyAmount + promotionResult.freeAmount),
+      ) * promotionResult.freeAmount
+    );
+  }
+
+  calculateFreeItemsWithConfirmation(
+    extraConfirmed,
+    promotionResult,
+    quantity,
+  ) {
+    if (!extraConfirmed) {
+      return (
+        Math.floor(
+          quantity / (promotionResult.buyAmount + promotionResult.freeAmount),
+        ) * promotionResult.freeAmount
+      );
+    }
+    return promotionResult.maxFreeItems;
+  }
 }
+
 export default CheckoutService;

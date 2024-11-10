@@ -104,7 +104,7 @@ class InventoryService {
   }
 
   // eslint-disable-next-line no-dupe-class-members, max-lines-per-function
-  getProductsCombinedQuantity(name) {
+  getCombinedQuantity(name) {
     const matchedProducts = this.products.filter(
       (product) => product.name === name,
     );
