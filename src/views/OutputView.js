@@ -4,6 +4,9 @@ class OutputView {
   constructor() {
     this.flag = 0;
   }
+  #formatPrice(price) {
+    return new Intl.NumberFormat("ko-KR").format(price);
+  }
   #hasStock(quantity) {
     if (quantity === 0) {
       return "재고 없음";
@@ -17,7 +20,7 @@ class OutputView {
         product.promotion === "" ? product.generalQty : product.promotionQty;
       const quantityStockStatus = this.#hasStock(productQty);
       Console.print(
-        `- ${product.name} ${product.price}원 ${quantityStockStatus} ${product.promotion}`
+        `- ${product.name} ${this.#formatPrice(product.price)}원 ${quantityStockStatus} ${product.promotion}`
       );
     });
   }
@@ -32,15 +35,15 @@ class OutputView {
         const promotionStockStatus = this.#hasStock(product.promotionQty);
         const generalStockStatus = this.#hasStock(product.generalQty);
         Console.print(
-          `- ${product.name} ${product.price}원 ${promotionStockStatus} ${product.promotion}`
+          `- ${product.name} ${this.#formatPrice(product.price)}원 ${promotionStockStatus} ${product.promotion}`
         );
         Console.print(
-          `- ${product.name} ${product.price}원 ${generalStockStatus}`
+          `- ${product.name} ${this.#formatPrice(product.price)}원 ${generalStockStatus}`
         );
       } else {
         const generalStockStatus = this.#hasStock(product.generalQty);
         Console.print(
-          `- ${product.name} ${product.price}원 ${generalStockStatus}`
+          `- ${product.name} ${this.#formatPrice(product.price)}원 ${generalStockStatus}`
         );
       }
 
@@ -81,7 +84,7 @@ class OutputView {
 
       // 각 product와 일치하는 순서의 quantity 출력
       Console.print(
-        `${purchasedName}\t\t${purchasedQty}\t${price * purchasedQty}`
+        `${purchasedName}\t\t${purchasedQty}\t${this.#formatPrice(price * purchasedQty)}`
       );
       count += purchasedQty;
     }
@@ -100,10 +103,12 @@ class OutputView {
     const totalDiscount = totalPromotionDiscount + membershipDiscount;
     const finalPayment = totalPurchaseAmount - totalDiscount;
 
-    Console.print(`총구매액\t${count}\t${totalPurchaseAmount}`);
-    Console.print(`행사할인\t\t-${totalPromotionDiscount}`);
-    Console.print(`멤버십할인\t\t-${membershipDiscount}`);
-    Console.print(`내실돈\t\t\t ${finalPayment}`);
+    Console.print(
+      `총구매액\t${count}\t${this.#formatPrice(totalPurchaseAmount)}`
+    );
+    Console.print(`행사할인\t\t-${this.#formatPrice(totalPromotionDiscount)}`);
+    Console.print(`멤버십할인\t\t-${this.#formatPrice(membershipDiscount)}`);
+    Console.print(`내실돈\t\t\t ${this.#formatPrice(finalPayment)}`);
   }
 }
 export default OutputView;
