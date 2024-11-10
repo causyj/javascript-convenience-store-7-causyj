@@ -20,5 +20,12 @@ class InputValidator {
       );
     }
   }
+
+  static validateYesNoInput(input) {
+    const trimmedInput = input.trim().toUpperCase();
+    if (trimmedInput !== 'Y' && trimmedInput !== 'N') {
+      throw new Error('[ERROR] Y 또는 N으로 대답해주세요.');
+    }
+  }
 }
 export default InputValidator;

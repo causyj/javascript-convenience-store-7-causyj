@@ -13,14 +13,14 @@ class CStoreController {
     this.checkoutService = new CheckoutService();
   }
 
-  // async #safeInput(input, onError) {
-  //   try {
-  //     await input();
-  //   } catch (error) {
-  //     Console.print(error.message);
-  //     await onError();
-  //   }
-  // }
+  async #safeInput(input, onError) {
+    try {
+      return await input();
+    } catch (error) {
+      Console.print(error.message);
+      return await onError();
+    }
+  }
 
   async start() {
     this.#printProductList();
@@ -28,12 +28,20 @@ class CStoreController {
     const finalItems = await this.#processItemsWithpromotion(items);
     this.#updateStock(finalItems);
     await this.#checkoutAndPrintReceipt(finalItems, items);
-    await this.#askForAdditionalPurchase();
+    await this.#askForMoreShopping();
   }
 
-  async #askForAdditionalPurchase() {
-    const additionalPurchase = await this.inputView.askForAdditionalPurchase();
-    Console.print(`additionalPurchase: ${additionalPurchase}`);
+  async #askForMoreShopping() {
+    await this.#safeInput(
+      async () => {
+        const additionalShopping = await this.inputView.askForMorePurchase();
+        InputValidator.validateYesNoInput(additionalShopping);
+        if (additionalShopping.trim().toUpperCase() === 'Y') {
+          await this.start();
+        }
+      },
+      async () => await this.#askForMoreShopping(),
+    );
   }
 
   // productsWithPromotion.forEach((product) => {
@@ -61,11 +69,18 @@ class CStoreController {
   }
 
   async #applyMembershipDiscount(products) {
-    const membershipInput = await this.inputView.getUserMembershipInput();
-    const isMember = membershipInput === 'Y';
-
-    if (!isMember) return 0;
-    return this.checkoutService.calculateMembershipDiscount(products);
+    return await this.#safeInput(
+      async () => {
+        const membershipInput = await this.inputView.getUserMembershipInput();
+        const isMember = membershipInput.trim().toUpperCase() === 'Y';
+        InputValidator.validateYesNoInput(membershipInput);
+        if (!isMember) return 0;
+        return this.checkoutService.calculateMembershipDiscount(products);
+      },
+      async () => {
+        return await this.#applyMembershipDiscount(products);
+      },
+    );
   }
 
   #isPromotionValid(product) {
@@ -77,6 +92,7 @@ class CStoreController {
   }
 
   // 3
+  // eslint-disable-next-line max-lines-per-function
   async #handlePromotionResult(promotionResult, product, quantity) {
     if (promotionResult.partialPromotion) {
       return await this.#partialPromotion(promotionResult, product, quantity);
@@ -88,6 +104,9 @@ class CStoreController {
         quantity,
       );
     }
+    Console.print(
+      `promotionResult.maxFreeItems: ${promotionResult.maxFreeItems}`,
+    );
     return [{ product, quantity, freeItems: promotionResult.maxFreeItems }];
   }
 
@@ -105,13 +124,26 @@ class CStoreController {
     );
   }
 
+  // eslint-disable-next-line max-lines-per-function
   async #confirmWithoutPromotion(product, promotionResult) {
+    return await this.#safeInput(
+      async () => {
+        await this.#confirmationWithoutPromotion(product, promotionResult);
+      },
+      async () => {
+        return await this.#confirmWithoutPromotion(product, promotionResult);
+      },
+    );
+  }
+
+  async #confirmationWithoutPromotion(product, promotionResult) {
     const userResponse =
       await this.inputView.getUserConfirmationWithoutPromotion(
         product.name,
         promotionResult.remainingQuantity,
       );
-    return userResponse === 'Y';
+    InputValidator.validateYesNoInput(userResponse);
+    return userResponse.trim().toUpperCase() === 'Y';
   }
 
   #partialPromotionResult(isConfirmed, promotionResult, product, quantity) {
@@ -141,11 +173,26 @@ class CStoreController {
   }
 
   async #confirmAdditionalPurchase(product, promotionResult) {
-    const userResponse = await this.inputView.getUserconfirmAdditionalPurchase(
+    return await this.#safeInput(
+      async () => {
+        return await this.#getUserAdditionalConfirmation(
+          product,
+          promotionResult,
+        );
+      },
+      async () => {
+        return await this.#confirmAdditionalPurchase(product, promotionResult);
+      },
+    );
+  }
+
+  async #getUserAdditionalConfirmation(product, promotionResult) {
+    const userResponse = await this.inputView.getUserConfirmAdditionalPurchase(
       product.name,
       promotionResult.extraRequired,
     );
-    return userResponse === 'Y';
+    InputValidator.validateYesNoInput(userResponse);
+    return userResponse.trim().toUpperCase() === 'Y';
   }
 
   #finalPromotionResult(promotionResult, product, quantity, extraConfirmed) {
@@ -224,8 +271,15 @@ class CStoreController {
   }
 
   async #getUserPurchaseItems() {
-    const userPurchaseInput = await this.inputView.getUserPurchaseInput();
-    return this.#parseUserPurchaseInput(userPurchaseInput);
+    return await this.#safeInput(
+      async () => {
+        const userPurchaseInput = await this.inputView.getUserPurchaseInput();
+        return this.#parseUserPurchaseInput(userPurchaseInput);
+      },
+      async () => {
+        return await this.#getUserPurchaseItems();
+      },
+    );
   }
 
   #parseUserPurchaseInput(input) {
