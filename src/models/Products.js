@@ -1,12 +1,11 @@
 /* eslint-disable no-lonely-if */
 class Products {
-  constructor(name, price, quantity, promotion, promotionStock) {
+  constructor(name, price, promotion, promotionQty, generalQty) {
     this.name = name;
     this.price = price;
-    this.quantity = quantity;
-    // 삼항연산자 제거
     this.promotion = promotion;
-    this.promotionStock = promotionStock;
+    this.promotionQty = promotionQty;
+    this.generalQty = generalQty;
   }
 
   // eslint-disable-next-line max-lines-per-function
