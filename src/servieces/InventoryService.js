@@ -8,7 +8,8 @@ import Promotion from "../models/Promotion.js";
 class InventoryService {
   constructor() {
     this.promotions = this.#loadPromotions();
-    this.products = this.#combineProducts(this.#loadProducts());
+    this.originalProducts = this.#loadProducts(); // 원본 데이터
+    this.products = null;
   }
   #combineProducts(productsList) {
     const combinedProducts = {};
@@ -33,7 +34,6 @@ class InventoryService {
 
     return Object.values(combinedProducts);
   }
-
   #isPromotionActive(promotion) {
     if (promotion.trim() === "null") {
       return "";
@@ -109,8 +109,11 @@ class InventoryService {
     return lines.map((line) => this.#parseProductAttributes(line));
   }
   getAllProducts() {
-    // 이미 초기화된 `products`를 그대로 반환하여 최신 상태를 유지
-    return this.products;
+    if (!this.products) {
+      this.products = this.#combineProducts(this.originalProducts);
+      return this.originalProducts; // 첫 출력 시 원본 데이터 사용
+    }
+    return this.products; // 이후 결합된 데이터 사용
   }
 
   getProductsNameList() {
@@ -170,7 +173,7 @@ class InventoryService {
 
   updateProducts(updatedItems) {
     updatedItems.forEach((updatedItem) => {
-      const product = this.products.find(
+      const product = (this.products || this.originalProducts).find(
         (p) => p.name === updatedItem.product.name
       );
       if (product) {
