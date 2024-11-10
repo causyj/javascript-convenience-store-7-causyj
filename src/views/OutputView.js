@@ -63,7 +63,7 @@ class OutputView {
 
   // eslint-disable-next-line max-lines-per-function
   printFinalReceipt(purchaseItems, finalBill, membershipDiscount) {
-    Console.print("==============W 편의점==============");
+    Console.print("\n==============W 편의점==============");
     Console.print("상품명\t\t수량\t금액");
 
     let totalPurchaseAmount = 0;

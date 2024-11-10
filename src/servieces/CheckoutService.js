@@ -1,9 +1,9 @@
 class CheckoutService {
-  #getExtraQtyNeeded(purchasedQty, buyAmount, freeAmount) {
+  #getExtraQtyNeeded(purchasedQty, buyAmount, totalPromotionQty) {
     if (purchasedQty < buyAmount) {
       return 0;
     }
-    const totalPromotionQty = buyAmount + freeAmount;
+
     if (purchasedQty % totalPromotionQty === 0) {
       return 0;
     }
@@ -12,32 +12,31 @@ class CheckoutService {
 
   // eslint-disable-next-line max-lines-per-function
   isPromotionApplicable(purchaseItem, buyAmount, freeAmount, products) {
+    const totalPromotionQty = buyAmount + freeAmount;
     const additionalQtyNeeded = this.#getExtraQtyNeeded(
       purchaseItem.purchasedQty,
       buyAmount,
-      freeAmount,
+      totalPromotionQty
     );
     const extraRequired =
       additionalQtyNeeded <= freeAmount ? additionalQtyNeeded : 0;
     const promotionStockSufficient =
       products.promotionQty >= purchaseItem.purchasedQty + extraRequired;
     const partialPromotion = !promotionStockSufficient;
-    const remainingQuantity = promotionStockSufficient
-      ? 0
-      : purchaseItem.purchasedQty + extraRequired - products.promotionQty;
-    // const maxFreeItems =
-    //   Math.floor((quantity + extraRequired) / (buyAmount + freeAmount)) *
-    //   freeAmount;
 
     const maxFreeItems =
       products.promotionQty < purchaseItem.purchasedQty
         ? Math.floor(
-            (products.promotionQty - extraRequired) / (buyAmount + freeAmount),
+            (products.promotionQty - extraRequired) / (buyAmount + freeAmount)
           ) * Number(freeAmount)
         : Math.floor(
             (purchaseItem.purchasedQty + extraRequired) /
-              (buyAmount + freeAmount),
+              (buyAmount + freeAmount)
           ) * Number(freeAmount);
+    const remainingQuantity = promotionStockSufficient
+      ? 0
+      : purchaseItem.purchasedQty - totalPromotionQty * maxFreeItems;
+
     return {
       extraRequired,
       partialPromotion,
@@ -50,7 +49,7 @@ class CheckoutService {
 
   calculateFinalPrices(finalItems) {
     return finalItems.map(({ product, purchasedQty, freeItems }) => {
-      const free = product.promotion === '' ? 0 : freeItems;
+      const free = product.promotion === "" ? 0 : freeItems;
       const discount = free * product.price;
       return {
         ...product,
@@ -76,7 +75,7 @@ class CheckoutService {
     return (
       Math.floor(
         product.promotionQty /
-          (promotionResult.buyAmount + promotionResult.freeAmount),
+          (promotionResult.buyAmount + promotionResult.freeAmount)
       ) * promotionResult.freeAmount
     );
   }
@@ -85,12 +84,12 @@ class CheckoutService {
   calculateFreeItemsWithConfirmation(
     extraConfirmed,
     promotionResult,
-    quantity,
+    quantity
   ) {
     if (!extraConfirmed) {
       return (
         Math.floor(
-          quantity / (promotionResult.buyAmount + promotionResult.freeAmount),
+          quantity / (promotionResult.buyAmount + promotionResult.freeAmount)
         ) * promotionResult.freeAmount
       );
     }

@@ -30,7 +30,6 @@ class CStoreController {
     const finalItems = await this.#processPromotion(purchaseItems);
     this.#updateStock(finalItems);
     await this.#checkoutAndPrintReceipt(finalItems, purchaseItems);
-
     await this.#askForMoreShopping();
   }
 
@@ -115,14 +114,11 @@ class CStoreController {
       product,
       promotionResult
     );
-    if (!isConfirmed) {
-      purchaseItem.cancelPurchase();
-    }
     return this.#partialPromotionResult(
       isConfirmed,
       promotionResult,
       product,
-      purchaseItem.purchasedQty
+      purchaseItem
     );
   }
 
@@ -151,14 +147,18 @@ class CStoreController {
     return userResponse.trim().toUpperCase() === "Y";
   }
 
-  #partialPromotionResult(isConfirmed, promotionResult, product, purchasedQty) {
-    const freeItems = this.checkoutService.calculateFreeItems(
-      product,
-      promotionResult,
-      purchasedQty
-    );
-
-    return [{ product, purchasedQty, freeItems }];
+  #partialPromotionResult(isConfirmed, promotionResult, product, purchaseItem) {
+    const freeItems = !isConfirmed
+      ? 0
+      : this.checkoutService.calculateFreeItems(
+          product,
+          promotionResult,
+          purchaseItem.purchasedQty
+        );
+    if (!isConfirmed) {
+      purchaseItem.cancelPurchase();
+    }
+    return [{ product, purchasedQty: purchaseItem.purchasedQty, freeItems }];
   }
   //
 
