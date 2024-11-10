@@ -1,9 +1,11 @@
+/* eslint-disable max-lines-per-function */
 import { Console } from '@woowacourse/mission-utils';
 import InventoryService from '../servieces/InventoryService.js';
 import InputView from '../views/InputView.js';
 import OutputView from '../views/OutputView.js';
 import InputValidator from '../validators/InputValidator.js';
 import CheckoutService from '../servieces/CheckoutService.js';
+import UserInputItem from '../models/UserInputItem.js';
 
 class CStoreController {
   constructor() {
@@ -25,7 +27,6 @@ class CStoreController {
   async start() {
     this.#printProductList();
     const purchaseItems = await this.#getUserPurchaseItems();
-
     const finalItems = await this.#processPromotion(purchaseItems);
 
     this.#updateStock(finalItems);
@@ -65,8 +66,8 @@ class CStoreController {
   }
 
   #updateStock(finalItems) {
-    finalItems.forEach(({ product, quantity }) => {
-      product.reduceStock(quantity);
+    finalItems.forEach(({ product, purchasedQty }) => {
+      product.reduceStock(purchasedQty);
     });
   }
 
@@ -86,31 +87,44 @@ class CStoreController {
   }
 
   // 3
-  async #handlePromotionResult(promotionResult, product, quantity) {
+  async #handlePromotionResult(promotionResult, product, purchaseItem) {
     if (promotionResult.partialPromotion) {
-      return await this.#partialPromotion(promotionResult, product, quantity);
+      return await this.#partialPromotion(
+        promotionResult,
+        product,
+        purchaseItem,
+      );
     }
     if (promotionResult.extraRequired) {
       return await this.#extraRequiredPromotion(
         promotionResult,
         product,
-        quantity,
+        purchaseItem,
       );
     }
-    return [{ product, quantity, freeItems: promotionResult.maxFreeItems }];
+    return [
+      {
+        product,
+        purchasedQty: purchaseItem.purchasedQty,
+        freeItems: promotionResult.maxFreeItems,
+      },
+    ];
   }
 
   //
-  async #partialPromotion(promotionResult, product, quantity) {
+  async #partialPromotion(promotionResult, product, purchaseItem) {
     const isConfirmed = await this.#confirmWithoutPromotion(
       product,
       promotionResult,
     );
+    if (!isConfirmed) {
+      purchaseItem.cancelPurchase();
+    }
     return this.#partialPromotionResult(
       isConfirmed,
       promotionResult,
       product,
-      quantity,
+      purchaseItem.purchasedQty,
     );
   }
 
@@ -118,7 +132,10 @@ class CStoreController {
   async #confirmWithoutPromotion(product, promotionResult) {
     return await this.#safeInput(
       async () => {
-        await this.#confirmationWithoutPromotion(product, promotionResult);
+        return await this.#confirmationWithoutPromotion(
+          product,
+          promotionResult,
+        );
       },
       async () => {
         return await this.#confirmWithoutPromotion(product, promotionResult);
@@ -136,28 +153,29 @@ class CStoreController {
     return userResponse.trim().toUpperCase() === 'Y';
   }
 
-  #partialPromotionResult(isConfirmed, promotionResult, product, quantity) {
+  #partialPromotionResult(isConfirmed, promotionResult, product, purchasedQty) {
     const freeItems = this.checkoutService.calculateFreeItems(
       product,
       promotionResult,
-      quantity,
+      purchasedQty,
     );
-    if (!isConfirmed) {
-      return [{ product, quantity: 0, freeItems: 0 }];
-    }
-    return [{ product, quantity, freeItems }];
+
+    return [{ product, purchasedQty, freeItems }];
   }
   //
 
-  async #extraRequiredPromotion(promotionResult, product, quantity) {
+  async #extraRequiredPromotion(promotionResult, product, purchaseItem) {
     const extraConfirmed = await this.#confirmAdditionalPurchase(
       product,
       promotionResult,
     );
+    if (extraConfirmed && promotionResult.extraRequired) {
+      purchaseItem.increasePurchaseQuantity(promotionResult.extraRequired);
+    }
     return this.#finalPromotionResult(
       promotionResult,
       product,
-      quantity,
+      purchaseItem.purchasedQty,
       extraConfirmed,
     );
   }
@@ -185,26 +203,18 @@ class CStoreController {
     return userResponse.trim().toUpperCase() === 'Y';
   }
 
-  #finalPromotionResult(promotionResult, product, quantity, extraConfirmed) {
-    const adjustedQuantity = this.calculateAdjustedQuantity(
-      extraConfirmed,
-      quantity,
-      promotionResult.extraRequired,
-    );
+  #finalPromotionResult(
+    promotionResult,
+    product,
+    purchasedQty,
+    extraConfirmed,
+  ) {
     const freeItems = this.checkoutService.calculateFreeItemsWithConfirmation(
       extraConfirmed,
       promotionResult,
-      adjustedQuantity,
-      quantity,
+      purchasedQty,
     );
-    return [{ product, quantity: adjustedQuantity, freeItems }];
-  }
-
-  calculateAdjustedQuantity(confirmed, baseQuantity, extra) {
-    if (confirmed) {
-      return baseQuantity + extra;
-    }
-    return baseQuantity;
+    return [{ product, purchasedQty, freeItems }];
   }
 
   #isPromotionValid(product) {
@@ -218,12 +228,12 @@ class CStoreController {
   // 2
   async #processSingleItemWithPromotion(purchaseItem) {
     const products = this.inventoryService.getCombinedQuantity(
-      purchaseItem.name,
+      purchaseItem.purchasedName,
     );
     if (products.promotion !== '' && this.#isPromotionValid(products)) {
       return await this.#getPromotionResult(purchaseItem, products);
     }
-    return [{ products, purchasedQty: purchaseItem.quantity }];
+    return [{ products, purchasedQty: purchaseItem.purchasedQty }];
   }
 
   async #getPromotionResult(purchaseItem, products) {
@@ -236,7 +246,7 @@ class CStoreController {
     return await this.#handlePromotionResult(
       promotionResult,
       products,
-      purchaseItem.quantity,
+      purchaseItem,
     );
   }
 
@@ -246,7 +256,7 @@ class CStoreController {
 
   #evaluatePromotionApplicability(purchaseItem, promotionDetails, products) {
     return this.checkoutService.isPromotionApplicable(
-      purchaseItem.quantity,
+      purchaseItem,
       promotionDetails.buyAmount,
       promotionDetails.freeAmount,
       products,
@@ -293,7 +303,7 @@ class CStoreController {
       this.inventoryService.getProductsNameList(),
       this.inventoryService.getProductQuantity(name),
     );
-    return { name, quantity: Number(quantity) };
+    return new UserInputItem(name, Number(quantity));
   }
 }
 export default CStoreController;
