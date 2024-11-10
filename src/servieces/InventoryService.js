@@ -1,3 +1,5 @@
+/* eslint-disable no-param-reassign */
+/* eslint-disable max-lines-per-function */
 import Products from '../models/Products.js';
 import FileContentsValidator from '../validators/FileContentsValidator.js';
 import { getLinesFromFile } from '../utils/fileUtils.js';
@@ -142,16 +144,17 @@ class InventoryService {
 
     return combinedProduct;
   }
-  // checkPromotionPeriod2(promotion) {
-  //   const currentDate = DateTimes.now();
-  //   const e = promotion.startDate;
-  //   const d = new Date(promotion.startDate);
-  //   Console.print(e);
-  //   Console.print(d);
-  //   return (
-  //     currentDate >= new Date(promotion.startDate) &&
-  //     currentDate <= new Date(promotion.endDate)
-  //   );
-  // }
+
+  updateProducts(updatedItems) {
+    updatedItems.forEach((updatedItem) => {
+      const product = this.products.find(
+        (p) => p.name === updatedItem.product.name,
+      );
+      if (product) {
+        product.promotionQty = updatedItem.product.promotionQty;
+        product.generalQty = updatedItem.product.generalQty;
+      }
+    });
+  }
 }
 export default InventoryService;

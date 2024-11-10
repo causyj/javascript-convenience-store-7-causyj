@@ -28,7 +28,6 @@ class CStoreController {
     this.#printProductList();
     const purchaseItems = await this.#getUserPurchaseItems();
     const finalItems = await this.#processPromotion(purchaseItems);
-
     this.#updateStock(finalItems);
     await this.#checkoutAndPrintReceipt(finalItems, purchaseItems);
     await this.#askForMoreShopping();
@@ -47,41 +46,39 @@ class CStoreController {
     );
   }
 
-  // productsWithPromotion.forEach((product) => {
-  //   const discountText =
-  //     product.discount > 0 ? ` (할인 적용: -${product.discount}원)` : '';
-  //   Console.print(`${product.name}: ${product.finalPrice}원${discountText}`);
-  // });
-  async #checkoutAndPrintReceipt(finalItems, items) {
-    const productsWithPromotion =
-      this.checkoutService.calculateFinalPrices(finalItems);
-    const membershipDiscount = await this.#applyMembershipDiscount(
-      productsWithPromotion,
-    );
+  async #checkoutAndPrintReceipt(finalItems, purchaseItems) {
+    const finalBill = this.checkoutService.calculateFinalPrices(finalItems);
+    const membershipDiscount = await this.#applyMembershipDiscount(finalBill);
     this.outputView.printFinalReceipt(
-      items,
-      productsWithPromotion,
+      purchaseItems,
+      finalBill,
       membershipDiscount || 0,
     );
   }
 
+  // #updateStock(finalItems) {
+  //   finalItems.forEach(({ product, purchasedQty }) => {
+  //     product.reduceStock(purchasedQty);
+  //   });
+  // }
   #updateStock(finalItems) {
     finalItems.forEach(({ product, purchasedQty }) => {
       product.reduceStock(purchasedQty);
     });
+    this.inventoryService.updateProducts(finalItems);
   }
 
-  async #applyMembershipDiscount(products) {
+  async #applyMembershipDiscount(finalBill) {
     return await this.#safeInput(
       async () => {
         const membershipInput = await this.inputView.getUserMembershipInput();
         const isMember = membershipInput.trim().toUpperCase() === 'Y';
         InputValidator.validateYesNoInput(membershipInput);
         if (!isMember) return 0;
-        return this.checkoutService.calculateMembershipDiscount(products);
+        return this.checkoutService.calculateMembershipDiscount(finalBill);
       },
       async () => {
-        return await this.#applyMembershipDiscount(products);
+        return await this.#applyMembershipDiscount(finalBill);
       },
     );
   }
@@ -227,13 +224,13 @@ class CStoreController {
 
   // 2
   async #processSingleItemWithPromotion(purchaseItem) {
-    const products = this.inventoryService.getCombinedQuantity(
+    const product = this.inventoryService.getCombinedQuantity(
       purchaseItem.purchasedName,
     );
-    if (products.promotion !== '' && this.#isPromotionValid(products)) {
-      return await this.#getPromotionResult(purchaseItem, products);
+    if (product.promotion !== '' && this.#isPromotionValid(product)) {
+      return await this.#getPromotionResult(purchaseItem, product);
     }
-    return [{ products, purchasedQty: purchaseItem.purchasedQty }];
+    return [{ product, purchasedQty: purchaseItem.purchasedQty }];
   }
 
   async #getPromotionResult(purchaseItem, products) {

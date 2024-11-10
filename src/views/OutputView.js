@@ -8,13 +8,15 @@ class OutputView {
     return `${quantity}개`;
   }
 
-  printProductList(products) {
+  printProductList(productList) {
     Console.print(
       '안녕하세요. W편의점입니다.\n현재 보유하고 있는 상품입니다:\n',
     );
 
-    products.forEach((product) => {
-      const quantityStockStatus = this.#hasStock(product.quantity);
+    productList.forEach((product) => {
+      const productQty =
+        product.promotion === '' ? product.generalQty : product.promotionQty;
+      const quantityStockStatus = this.#hasStock(productQty);
       Console.print(
         `- ${product.name} ${product.price}원 ${quantityStockStatus} ${product.promotion}`,
       );
@@ -22,7 +24,7 @@ class OutputView {
   }
 
   // eslint-disable-next-line max-lines-per-function
-  printFinalReceipt(products, productsWithPromotion, membershipDiscount) {
+  printFinalReceipt(purchaseItems, finalBill, membershipDiscount) {
     Console.print('==============W 편의점==============');
     Console.print('상품명\t\t수량\t금액');
 
@@ -30,22 +32,26 @@ class OutputView {
     let totalPromotionDiscount = 0;
     let count = 0;
     // 구매 상품 목록 및 행사할인
-    for (let i = 0; i < productsWithPromotion.length; i++) {
-      const { name, finalPrice, discount } = productsWithPromotion[i];
-      const { quantity } = products[i]; // products 배열의 순서에 맞게 접근
-
+    for (let i = 0; i < purchaseItems.length; i++) {
+      const { price, finalPrice, discount } = finalBill[i];
+      const { purchasedName, purchasedQty } = purchaseItems[i];
+      if (purchasedQty === 0) {
+        return;
+      }
       totalPurchaseAmount += finalPrice + discount;
       totalPromotionDiscount += discount;
 
       // 각 product와 일치하는 순서의 quantity 출력
-      Console.print(`${name}\t\t${quantity}\t${finalPrice}`);
-      count += quantity;
+      Console.print(
+        `${purchasedName}\t\t${purchasedQty}\t${price * purchasedQty}`,
+      );
+      count += purchasedQty;
     }
 
     // 증정 상품 목록 출력
     Console.print('==============증  정================');
 
-    productsWithPromotion.forEach(({ name, freeItems }) => {
+    finalBill.forEach(({ name, freeItems }) => {
       if (freeItems > 0) {
         Console.print(`${name}\t\t${freeItems}`);
       }

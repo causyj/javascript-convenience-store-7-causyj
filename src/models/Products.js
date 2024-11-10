@@ -1,5 +1,4 @@
-import { Console } from '@woowacourse/mission-utils';
-
+/* eslint-disable max-depth */
 /* eslint-disable no-lonely-if */
 class Products {
   constructor(name, price, promotion, promotionQty, generalQty) {
@@ -19,10 +18,8 @@ class Products {
         const remainingQty = purchasedQty - this.promotionQty;
         this.generalQty -= remainingQty;
         this.promotionQty = 0;
-        Console.print(`this.generalQty : ${this.generalQty}`);
       }
     } else {
-      // promotion이 없을때
       if (this.generalQty >= purchasedQty) {
         this.generalQty -= purchasedQty;
       } else {

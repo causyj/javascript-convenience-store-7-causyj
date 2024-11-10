@@ -48,21 +48,21 @@ class CheckoutService {
     };
   }
 
-  calculateFinalPrices(items) {
-    return items.map(({ product, quantity, freeItems }) => {
+  calculateFinalPrices(finalItems) {
+    return finalItems.map(({ product, purchasedQty, freeItems }) => {
       const free = product.promotion === '' ? 0 : freeItems;
       const discount = free * product.price;
       return {
         ...product,
         discount,
-        finalPrice: product.price * quantity - discount,
+        finalPrice: product.price * purchasedQty - discount,
         freeItems,
       };
     });
   }
 
-  calculateMembershipDiscount(items) {
-    const nonPromotionTotal = items
+  calculateMembershipDiscount(finalBill) {
+    const nonPromotionTotal = finalBill
       .filter((item) => item.discount === 0)
       .reduce((total, item) => total + item.finalPrice, 0);
     const membershipDiscount = Math.min(nonPromotionTotal * 0.3, 8000);
