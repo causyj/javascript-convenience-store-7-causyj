@@ -1,3 +1,5 @@
+import { Console } from '@woowacourse/mission-utils';
+
 /* eslint-disable no-lonely-if */
 class Products {
   constructor(name, price, promotion, promotionQty, generalQty) {
@@ -9,22 +11,20 @@ class Products {
   }
 
   // eslint-disable-next-line max-lines-per-function
-  reduceStock(amount) {
-    if (this.promotion && this.promotionStock > 0) {
-      // 먼저 promotionStock에서 가능한 만큼 차감
-      if (this.promotionStock >= amount) {
-        this.promotionStock -= amount;
-        this.quantity -= amount;
+  reduceStock(purchasedQty) {
+    if (this.promotion && this.promotionQty > 0) {
+      if (this.promotionQty >= purchasedQty) {
+        this.promotionQty -= purchasedQty;
       } else {
-        // promotionStock을 모두 소진하고, 남은 수량을 remainingAmount로 계산
-        // const remainingAmount = amount - this.promotionStock;
-        this.quantity -= amount;
-        this.promotionStock = 0;
+        const remainingQty = purchasedQty - this.promotionQty;
+        this.generalQty -= remainingQty;
+        this.promotionQty = 0;
+        Console.print(`this.generalQty : ${this.generalQty}`);
       }
     } else {
-      // promotion이 없거나 promotionStock이 0인 경우, 전체 수량을 quantity에서 차감
-      if (this.quantity >= amount) {
-        this.quantity -= amount;
+      // promotion이 없을때
+      if (this.generalQty >= purchasedQty) {
+        this.generalQty -= purchasedQty;
       } else {
         throw new Error('[ERROR] 재고가 부족합니다');
       }
