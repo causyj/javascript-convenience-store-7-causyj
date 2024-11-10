@@ -127,7 +127,7 @@ class InventoryService {
         price: matchedProducts[0].price,
         generalQty: 0,
         promotionQty: 0,
-        promotion: null,
+        promotion: '',
       },
     );
 
@@ -140,7 +140,7 @@ class InventoryService {
       combinedData.generalQty,
     );
 
-    return [combinedProduct];
+    return combinedProduct;
   }
   // checkPromotionPeriod2(promotion) {
   //   const currentDate = DateTimes.now();

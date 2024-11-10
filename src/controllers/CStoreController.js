@@ -24,10 +24,12 @@ class CStoreController {
 
   async start() {
     this.#printProductList();
-    const items = await this.#getUserPurchaseItems();
-    const finalItems = await this.#processItemsWithpromotion(items);
+    const purchaseItems = await this.#getUserPurchaseItems();
+
+    const finalItems = await this.#processPromotion(purchaseItems);
+
     this.#updateStock(finalItems);
-    await this.#checkoutAndPrintReceipt(finalItems, items);
+    await this.#checkoutAndPrintReceipt(finalItems, purchaseItems);
     await this.#askForMoreShopping();
   }
 
@@ -83,16 +85,7 @@ class CStoreController {
     );
   }
 
-  #isPromotionValid(product) {
-    const promotionInstance = this.inventoryService.getPromotionsByName(
-      product.promotion,
-    );
-    if (!promotionInstance) return false;
-    return promotionInstance.checkPromotionPeriod();
-  }
-
   // 3
-  // eslint-disable-next-line max-lines-per-function
   async #handlePromotionResult(promotionResult, product, quantity) {
     if (promotionResult.partialPromotion) {
       return await this.#partialPromotion(promotionResult, product, quantity);
@@ -104,9 +97,6 @@ class CStoreController {
         quantity,
       );
     }
-    Console.print(
-      `promotionResult.maxFreeItems: ${promotionResult.maxFreeItems}`,
-    );
     return [{ product, quantity, freeItems: promotionResult.maxFreeItems }];
   }
 
@@ -217,50 +207,58 @@ class CStoreController {
     return baseQuantity;
   }
 
-  // 2
-  async #processSingleItemWithPromotion(item) {
-    const products = this.inventoryService.getCombinedQuantity(item.name);
-    const productWithPromotion = products.find((p) => p.promotion);
-
-    if (productWithPromotion && this.#isPromotionValid(productWithPromotion)) {
-      return await this.#getPromotionResult(item, productWithPromotion);
-    }
-    return [{ product: products[0], quantity: item.quantity }];
+  #isPromotionValid(product) {
+    const promotionInstance = this.inventoryService.getPromotionsByName(
+      product.promotion,
+    );
+    if (!promotionInstance) return false;
+    return promotionInstance.checkPromotionPeriod();
   }
 
-  async #getPromotionResult(item, productWithPromotion) {
-    const promotion = this.#fetchPromotionDetails(productWithPromotion);
+  // 2
+  async #processSingleItemWithPromotion(purchaseItem) {
+    const products = this.inventoryService.getCombinedQuantity(
+      purchaseItem.name,
+    );
+    if (products.promotion !== '' && this.#isPromotionValid(products)) {
+      return await this.#getPromotionResult(purchaseItem, products);
+    }
+    return [{ products, purchasedQty: purchaseItem.quantity }];
+  }
+
+  async #getPromotionResult(purchaseItem, products) {
+    const promotionDetails = this.#fetchPromotionDetails(products.promotion);
     const promotionResult = this.#evaluatePromotionApplicability(
-      item,
-      productWithPromotion,
-      promotion,
+      purchaseItem,
+      promotionDetails,
+      products,
     );
     return await this.#handlePromotionResult(
       promotionResult,
-      productWithPromotion,
-      item.quantity,
+      products,
+      purchaseItem.quantity,
     );
   }
 
-  #fetchPromotionDetails(productWithPromotion) {
-    return this.inventoryService.getPromotionsByName(
-      productWithPromotion.promotion,
-    );
+  #fetchPromotionDetails(promotionName) {
+    return this.inventoryService.getPromotionsByName(promotionName);
   }
 
-  #evaluatePromotionApplicability(item, productWithPromotion, promotion) {
+  #evaluatePromotionApplicability(purchaseItem, promotionDetails, products) {
     return this.checkoutService.isPromotionApplicable(
-      productWithPromotion,
-      promotion.buyAmount,
-      promotion.freeAmount,
-      item.quantity,
+      purchaseItem.quantity,
+      promotionDetails.buyAmount,
+      promotionDetails.freeAmount,
+      products,
     );
   }
 
   // 1
-  async #processItemsWithpromotion(items) {
+  async #processPromotion(purchaseItems) {
     const processedItems = await Promise.all(
-      items.map(async (item) => this.#processSingleItemWithPromotion(item)),
+      purchaseItems.map(async (purchaseItem) =>
+        this.#processSingleItemWithPromotion(purchaseItem),
+      ),
     );
     return processedItems.flat();
   }
