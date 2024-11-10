@@ -48,6 +48,9 @@ class CStoreController {
 
   async #checkoutAndPrintReceipt(finalItems, purchaseItems) {
     const finalBill = this.checkoutService.calculateFinalPrices(finalItems);
+    if (finalBill.every((item) => item.finalPrice === 0)) {
+      return;
+    }
     const membershipDiscount = await this.#applyMembershipDiscount(finalBill);
     this.outputView.printFinalReceipt(
       purchaseItems,
