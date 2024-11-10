@@ -10,6 +10,7 @@ class OutputView {
     }
     return `${quantity}개`;
   }
+
   #first(productList) {
     productList.forEach((product) => {
       const productQty =
@@ -22,36 +23,31 @@ class OutputView {
   }
 
   #next(productList) {
-    let previousProductName = null;
+    let printedNames = new Set();
 
     productList.forEach((product) => {
-      if (product.name === previousProductName) {
-        return;
-      }
+      if (printedNames.has(product.name)) return;
 
       if (product.promotion) {
         const promotionStockStatus = this.#hasStock(product.promotionQty);
+        const generalStockStatus = this.#hasStock(product.generalQty);
         Console.print(
           `- ${product.name} ${product.price}원 ${promotionStockStatus} ${product.promotion}`
         );
+        Console.print(
+          `- ${product.name} ${product.price}원 ${generalStockStatus}`
+        );
+      } else {
         const generalStockStatus = this.#hasStock(product.generalQty);
         Console.print(
           `- ${product.name} ${product.price}원 ${generalStockStatus}`
         );
       }
 
-      // 두 번째 줄: 일반 수량 출력
-      if (product.promotion === "") {
-        const generalStockStatus = this.#hasStock(product.generalQty);
-        Console.print(
-          `- ${product.name} ${product.price}원 ${generalStockStatus}`
-        );
-      }
-
-      // 현재 상품의 이름을 previousProductName에 저장하여 다음과 비교
-      previousProductName = product.name;
+      printedNames.add(product.name);
     });
   }
+
   printProductList(productList) {
     Console.print(
       "안녕하세요. W편의점입니다.\n현재 보유하고 있는 상품입니다:\n"

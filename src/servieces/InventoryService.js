@@ -8,7 +8,30 @@ import Promotion from "../models/Promotion.js";
 class InventoryService {
   constructor() {
     this.promotions = this.#loadPromotions();
-    this.products = this.#loadProducts();
+    this.products = this.#combineProducts(this.#loadProducts());
+  }
+  #combineProducts(productsList) {
+    const combinedProducts = {};
+
+    productsList.forEach((product) => {
+      if (!combinedProducts[product.name]) {
+        combinedProducts[product.name] = new Products(
+          product.name,
+          product.price,
+          product.promotion,
+          product.promotion ? product.promotionQty : 0,
+          product.promotion ? 0 : product.generalQty
+        );
+      } else {
+        if (product.promotion) {
+          combinedProducts[product.name].promotionQty += product.promotionQty;
+        } else {
+          combinedProducts[product.name].generalQty += product.generalQty;
+        }
+      }
+    });
+
+    return Object.values(combinedProducts);
   }
 
   #isPromotionActive(promotion) {
@@ -85,8 +108,8 @@ class InventoryService {
 
     return lines.map((line) => this.#parseProductAttributes(line));
   }
-
   getAllProducts() {
+    // 이미 초기화된 `products`를 그대로 반환하여 최신 상태를 유지
     return this.products;
   }
 
