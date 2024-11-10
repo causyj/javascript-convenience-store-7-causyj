@@ -127,7 +127,10 @@ class InventoryService {
   getProductQuantity(name) {
     return this.products
       .filter((product) => product.name === name)
-      .reduce((total, product) => total + product.quantity, 0);
+      .reduce(
+        (total, product) => total + product.generalQty + product.promotionQty,
+        0
+      );
   }
 
   getProductsByName(name) {
