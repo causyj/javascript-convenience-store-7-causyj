@@ -23,9 +23,8 @@ class CheckoutService {
     const promotionStockSufficient =
       products.promotionQty >= purchaseItem.purchasedQty + extraRequired;
     const partialPromotion = !promotionStockSufficient;
-
     const maxFreeItems =
-      products.promotionQty < purchaseItem.purchasedQty
+      products.promotionQty <= purchaseItem.purchasedQty
         ? Math.floor(
             (products.promotionQty - extraRequired) / (buyAmount + freeAmount)
           ) * Number(freeAmount)
@@ -33,6 +32,7 @@ class CheckoutService {
             (purchaseItem.purchasedQty + extraRequired) /
               (buyAmount + freeAmount)
           ) * Number(freeAmount);
+
     const remainingQuantity = promotionStockSufficient
       ? 0
       : purchaseItem.purchasedQty - totalPromotionQty * maxFreeItems;

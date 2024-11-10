@@ -70,11 +70,11 @@ class OutputView {
     let totalPromotionDiscount = 0;
     let count = 0;
     // 구매 상품 목록 및 행사할인
-    for (let i = 0; i < purchaseItems.length; i++) {
+    for (let i = 0; i < finalBill.length; i++) {
       const { price, finalPrice, discount } = finalBill[i];
       const { purchasedName, purchasedQty } = purchaseItems[i];
       if (purchasedQty === 0) {
-        return;
+        continue;
       }
       totalPurchaseAmount += finalPrice + discount;
       totalPromotionDiscount += discount;
