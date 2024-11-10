@@ -106,7 +106,11 @@ class InventoryService {
     const lines = getLinesFromFile("products.md");
     lines.forEach((line) => FileContentsValidator.validateLineFormat(line, 4));
 
-    return lines.map((line) => this.#parseProductAttributes(line));
+    const productsList = lines.map((line) =>
+      this.#parseProductAttributes(line)
+    );
+    FileContentsValidator.validateNoMultiplePromotions(productsList);
+    return productsList;
   }
   getAllProducts() {
     if (!this.products) {
