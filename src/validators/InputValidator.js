@@ -8,12 +8,24 @@ class InputValidator {
   }
 
   static validateProduct(name, quantity, productNameList, availableQuantity) {
+    this.#validateQuantity(quantity);
+    this.#validateProductExists(name, productNameList);
+    this.#validateStockAvailability(quantity, availableQuantity);
+  }
+
+  static #validateQuantity(quantity) {
     if (!isValidatePositiveInteger(quantity)) {
       throw new Error('[ERROR] 상품의 수량을 다시 입력해주세요');
     }
+  }
+
+  static #validateProductExists(name, productNameList) {
     if (!productNameList.includes(name)) {
       throw new Error('[ERROR] 편의점에 없는 상품입니다.');
     }
+  }
+
+  static #validateStockAvailability(quantity, availableQuantity) {
     if (quantity > availableQuantity) {
       throw new Error(
         '[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.',

@@ -1,41 +1,45 @@
+/* eslint-disable max-lines-per-function */
+import { calulateFreeItemCnt } from '../utils/purchaseUtils.js';
+
 class CheckoutService {
-  #getExtraQtyNeeded(purchasedQty, buyAmount, totalPromotionQty) {
+  #getExtraQtyNeeded(purchasedQty, buyAmount, freeAmount) {
     if (purchasedQty < buyAmount) {
       return 0;
     }
-
-    if (purchasedQty % totalPromotionQty === 0) {
+    if (purchasedQty % (buyAmount + freeAmount) === 0) {
       return 0;
     }
-    return totalPromotionQty - (purchasedQty % totalPromotionQty);
+    return buyAmount + freeAmount - (purchasedQty % (buyAmount + freeAmount));
   }
 
-  // eslint-disable-next-line max-lines-per-function
   isPromotionApplicable(purchaseItem, buyAmount, freeAmount, products) {
-    const totalPromotionQty = buyAmount + freeAmount;
+    const { promotionQty } = products;
     const additionalQtyNeeded = this.#getExtraQtyNeeded(
       purchaseItem.purchasedQty,
       buyAmount,
-      totalPromotionQty
+      freeAmount,
     );
-    const extraRequired =
-      additionalQtyNeeded <= freeAmount ? additionalQtyNeeded : 0;
+    const extraRequired = this.#getExtraRequired(
+      additionalQtyNeeded,
+      freeAmount,
+    );
     const promotionStockSufficient =
-      products.promotionQty >= purchaseItem.purchasedQty + extraRequired;
+      promotionQty >= purchaseItem.purchasedQty + extraRequired;
     const partialPromotion = !promotionStockSufficient;
-    const maxFreeItems =
-      products.promotionQty <= purchaseItem.purchasedQty
-        ? Math.floor(
-            (products.promotionQty - extraRequired) / (buyAmount + freeAmount)
-          ) * Number(freeAmount)
-        : Math.floor(
-            (purchaseItem.purchasedQty + extraRequired) /
-              (buyAmount + freeAmount)
-          ) * Number(freeAmount);
-
-    const remainingQuantity = promotionStockSufficient
-      ? 0
-      : purchaseItem.purchasedQty - totalPromotionQty * maxFreeItems;
+    const maxFreeItems = this.#getMaxItems(
+      purchaseItem,
+      promotionQty,
+      extraRequired,
+      buyAmount,
+      freeAmount,
+    );
+    const remainingQuantity = this.#getRemainingQuantity(
+      promotionStockSufficient,
+      purchaseItem.purchasedQty,
+      buyAmount,
+      freeAmount,
+      maxFreeItems,
+    );
 
     return {
       extraRequired,
@@ -47,9 +51,50 @@ class CheckoutService {
     };
   }
 
+  #getRemainingQuantity(
+    promotionStockSufficient,
+    purchasedQty,
+    buyAmount,
+    freeAmount,
+    maxFreeItems,
+  ) {
+    if (promotionStockSufficient) {
+      return 0;
+    }
+    return purchasedQty - (buyAmount + freeAmount) * maxFreeItems;
+  }
+
+  #getExtraRequired(additionalQtyNeeded, freeAmount) {
+    if (additionalQtyNeeded <= freeAmount) {
+      return additionalQtyNeeded;
+    }
+    return 0;
+  }
+
+  #getMaxItems(
+    purchaseItem,
+    promotionQty,
+    extraRequired,
+    buyAmount,
+    freeAmount,
+  ) {
+    if (promotionQty <= purchaseItem.purchasedQty) {
+      return calulateFreeItemCnt(
+        promotionQty - extraRequired,
+        buyAmount,
+        freeAmount,
+      );
+    }
+    return calulateFreeItemCnt(
+      purchaseItem.purchasedQty + extraRequired,
+      buyAmount,
+      freeAmount,
+    );
+  }
+
   calculateFinalPrices(finalItems) {
     return finalItems.map(({ product, purchasedQty, freeItems }) => {
-      const free = product.promotion === "" ? 0 : freeItems;
+      const free = this.#getFree(product.promotion, freeItems);
       const discount = free * product.price;
       return {
         ...product,
@@ -58,6 +103,13 @@ class CheckoutService {
         freeItems,
       };
     });
+  }
+
+  #getFree(promotion, freeItems) {
+    if (promotion === '') {
+      return 0;
+    }
+    return freeItems;
   }
 
   calculateMembershipDiscount(finalBill) {
@@ -72,25 +124,23 @@ class CheckoutService {
     if (quantity <= product.promotionQty) {
       return promotionResult.maxFreeItems;
     }
-    return (
-      Math.floor(
-        product.promotionQty /
-          (promotionResult.buyAmount + promotionResult.freeAmount)
-      ) * promotionResult.freeAmount
+    return calulateFreeItemCnt(
+      product.promotionQty,
+      promotionResult.buyAmount,
+      promotionResult.freeAmount,
     );
   }
 
-  // eslint-disable-next-line max-lines-per-function
   calculateFreeItemsWithConfirmation(
     extraConfirmed,
     promotionResult,
-    quantity
+    quantity,
   ) {
     if (!extraConfirmed) {
-      return (
-        Math.floor(
-          quantity / (promotionResult.buyAmount + promotionResult.freeAmount)
-        ) * promotionResult.freeAmount
+      return calulateFreeItemCnt(
+        quantity,
+        promotionResult.buyAmount,
+        promotionResult.freeAmount,
       );
     }
     return promotionResult.maxFreeItems;

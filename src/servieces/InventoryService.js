@@ -1,16 +1,16 @@
-/* eslint-disable no-param-reassign */
 /* eslint-disable max-lines-per-function */
-import Products from "../models/Products.js";
-import FileContentsValidator from "../validators/FileContentsValidator.js";
-import { getLinesFromFile } from "../utils/fileUtils.js";
-import Promotion from "../models/Promotion.js";
+import Products from '../models/Products.js';
+import FileContentsValidator from '../validators/FileContentsValidator.js';
+import { getLinesFromFile } from '../utils/fileUtils.js';
+import Promotion from '../models/Promotion.js';
 
 class InventoryService {
   constructor() {
     this.promotions = this.#loadPromotions();
-    this.originalProducts = this.#loadProducts(); // 원본 데이터
+    this.originalProducts = this.#loadProducts();
     this.products = null;
   }
+
   #combineProducts(productsList) {
     const combinedProducts = {};
 
@@ -21,22 +21,21 @@ class InventoryService {
           product.price,
           product.promotion,
           product.promotion ? product.promotionQty : 0,
-          product.promotion ? 0 : product.generalQty
+          product.promotion ? 0 : product.generalQty,
         );
+      } else if (product.promotion) {
+        combinedProducts[product.name].promotionQty += product.promotionQty;
       } else {
-        if (product.promotion) {
-          combinedProducts[product.name].promotionQty += product.promotionQty;
-        } else {
-          combinedProducts[product.name].generalQty += product.generalQty;
-        }
+        combinedProducts[product.name].generalQty += product.generalQty;
       }
     });
 
     return Object.values(combinedProducts);
   }
+
   #isPromotionActive(promotion) {
-    if (promotion.trim() === "null") {
-      return "";
+    if (promotion.trim() === 'null') {
+      return '';
     }
     return promotion.trim();
   }
@@ -50,33 +49,31 @@ class InventoryService {
       price,
       quantity,
       formattedPromotion,
-      promotionNameList
+      promotionNameList,
     );
     return { name, price, quantity, formattedPromotion };
   }
 
-  // eslint-disable-next-line max-lines-per-function
   #parsePromotionAttributes(line) {
-    const [name, buy, get, startDate, endDate] = line.split(",");
+    const [name, buy, get, startDate, endDate] = line.split(',');
     FileContentsValidator.validatePromotionData(
       name,
       buy,
       get,
       startDate,
-      endDate
+      endDate,
     );
     return new Promotion(
       name.trim(),
       Number(buy),
       Number(get),
       startDate.trim(),
-      endDate.trim()
+      endDate.trim(),
     );
   }
 
-  // eslint-disable-next-line max-lines-per-function
   #parseProductAttributes(line) {
-    const [name, price, quantity, promotion] = line.split(",");
+    const [name, price, quantity, promotion] = line.split(',');
     const {
       name: validatedName,
       price: validatedPrice,
@@ -84,40 +81,41 @@ class InventoryService {
       formattedPromotion,
     } = this.#validateProductAttributes(name, price, quantity, promotion);
     const promotionQty =
-      formattedPromotion === "" ? 0 : Number(validatedQuantity);
+      formattedPromotion === '' ? 0 : Number(validatedQuantity);
     const generalQty =
-      formattedPromotion === "" ? Number(validatedQuantity) : 0;
+      formattedPromotion === '' ? Number(validatedQuantity) : 0;
     return new Products(
       validatedName,
       Number(validatedPrice),
       formattedPromotion,
       promotionQty,
-      generalQty
+      generalQty,
     );
   }
 
   #loadPromotions() {
-    const lines = getLinesFromFile("promotions.md");
+    const lines = getLinesFromFile('promotions.md');
     lines.forEach((line) => FileContentsValidator.validateLineFormat(line, 5));
     return lines.map((line) => this.#parsePromotionAttributes(line));
   }
 
   #loadProducts() {
-    const lines = getLinesFromFile("products.md");
+    const lines = getLinesFromFile('products.md');
     lines.forEach((line) => FileContentsValidator.validateLineFormat(line, 4));
 
     const productsList = lines.map((line) =>
-      this.#parseProductAttributes(line)
+      this.#parseProductAttributes(line),
     );
     FileContentsValidator.validateNoMultiplePromotions(productsList);
     return productsList;
   }
+
   getAllProducts() {
     if (!this.products) {
       this.products = this.#combineProducts(this.originalProducts);
-      return this.originalProducts; // 첫 출력 시 원본 데이터 사용
+      return this.originalProducts;
     }
-    return this.products; // 이후 결합된 데이터 사용
+    return this.products;
   }
 
   getProductsNameList() {
@@ -129,7 +127,7 @@ class InventoryService {
       .filter((product) => product.name === name)
       .reduce(
         (total, product) => total + product.generalQty + product.promotionQty,
-        0
+        0,
       );
   }
 
@@ -141,10 +139,9 @@ class InventoryService {
     return this.promotions.find((promotion) => promotion.name === name);
   }
 
-  // eslint-disable-next-line no-dupe-class-members, max-lines-per-function
   getCombinedQuantity(name) {
     const matchedProducts = this.products.filter(
-      (product) => product.name === name
+      (product) => product.name === name,
     );
     if (matchedProducts.length === 0) {
       return null;
@@ -162,17 +159,16 @@ class InventoryService {
         price: matchedProducts[0].price,
         generalQty: 0,
         promotionQty: 0,
-        promotion: "",
-      }
+        promotion: '',
+      },
     );
 
-    // Products 클래스의 인스턴스로 반환, promotionStock도 전달
     const combinedProduct = new Products(
       combinedData.name,
       combinedData.price,
       combinedData.promotion,
       combinedData.promotionQty,
-      combinedData.generalQty
+      combinedData.generalQty,
     );
 
     return combinedProduct;
@@ -181,7 +177,7 @@ class InventoryService {
   updateProducts(updatedItems) {
     updatedItems.forEach((updatedItem) => {
       const product = (this.products || this.originalProducts).find(
-        (p) => p.name === updatedItem.product.name
+        (p) => p.name === updatedItem.product.name,
       );
       if (product) {
         product.promotionQty = updatedItem.product.promotionQty;
