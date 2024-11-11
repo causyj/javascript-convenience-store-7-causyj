@@ -32,6 +32,7 @@ const getLogSpy = () => {
 };
 
 const getOutput = (logSpy) => {
+  console.log(logSpy.mock.calls); 
   return [...logSpy.mock.calls].join(LINE_SEPARATOR);
 };
 
@@ -80,7 +81,7 @@ const run = async ({
   // when
   const app = new App();
   await app.run();
-
+  await new Promise((resolve) => setTimeout(resolve, 100));
   const output = getOutput(logSpy);
 
   // then
