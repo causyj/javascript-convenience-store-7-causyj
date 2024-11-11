@@ -1,0 +1,37 @@
+/Users/syj/Desktop/CODING/wooa-tech-course/javascript-convenience-store-7-causyj
+├── README.md
+├── __tests__
+|  └── ApplicationTest.js
+├── package-lock.json
+├── package.json
+├── public
+|  ├── products.md
+|  └── promotions.md
+└── src
+   ├── @types
+   |  └── @woowacourse
+   ├── App.js
+   ├── controllers
+   |  └── CStoreController.js
+   ├── index.js
+   ├── models
+   |  ├── Products.js
+   |  ├── Promotion.js
+   |  └── UserInputItem.js
+   ├── servieces
+   |  ├── CheckoutService.js
+   |  └── InventoryService.js
+   ├── utils
+   |  ├── fileUtils.js
+   |  ├── purchaseUtils.js
+   |  └── validatorUtils.js
+   ├── validators
+   |  ├── FileContentsValidator.js
+   |  └── InputValidator.js
+   └── views
+      ├── InputView.js
+      └── OutputView.js
+
+directory: 891 file: 2028
+
+ignored: directory (16)
