@@ -18,39 +18,56 @@ class OutputView {
   }
 
   #first(productList) {
-    const productLines = productList.map((product) => {
-      const productQty =
-        product.promotion === '' ? product.generalQty : product.promotionQty;
-      const quantityStockStatus = this.#hasStock(productQty);
-      return `- ${product.name} ${this.#formatPrice(product.price)}원 ${quantityStockStatus} ${product.promotion}`;
+    const groupedProducts = productList.reduce((acc, product) => {
+      if (!acc[product.name]) {
+        acc[product.name] = [];
+      }
+      acc[product.name].push(product);
+      return acc;
+    }, {});
+    Object.values(groupedProducts).forEach((products) => {
+      const primaryProduct = products[0];
+      const secondProduct = products[1];
+      const hasPromotion = primaryProduct.promotion !== '';
+      const generalStockStatus = this.#hasStock(primaryProduct.generalQty);
+      if (products.length !== 1 && hasPromotion) {
+        Console.print(
+          `- ${primaryProduct.name} ${this.#formatPrice(primaryProduct.price)}원 ${this.#hasStock(primaryProduct.promotionQty)} ${primaryProduct.promotion}`,
+        );
+        Console.print(
+          `- ${secondProduct.name} ${this.#formatPrice(secondProduct.price)}원 ${this.#hasStock(secondProduct.generalQty)}`,
+        );
+        return;
+      }
+      if (products.length === 1 && hasPromotion) {
+        Console.print(
+          `- ${primaryProduct.name} ${this.#formatPrice(primaryProduct.price)}원 ${this.#hasStock(primaryProduct.promotionQty)} ${primaryProduct.promotion}`,
+        );
+        Console.print(
+          `- ${primaryProduct.name} ${this.#formatPrice(primaryProduct.price)}원 재고 없음`,
+        );
+        return;
+      }
+      Console.print(
+        `- ${primaryProduct.name} ${this.#formatPrice(primaryProduct.price)}원 ${generalStockStatus}`,
+      );
     });
-
-    productLines.forEach((line) => Console.print(line));
   }
 
   #next(productList) {
-    const printedNames = new Set();
-
     productList.forEach((product) => {
-      if (printedNames.has(product.name)) return;
-
-      if (product.promotion) {
-        const promotionStockStatus = this.#hasStock(product.promotionQty);
-        const generalStockStatus = this.#hasStock(product.generalQty);
+      if (product.promotion !== '') {
         Console.print(
-          `- ${product.name} ${this.#formatPrice(product.price)}원 ${promotionStockStatus} ${product.promotion}`,
+          `- ${product.name} ${this.#formatPrice(product.price)}원 ${this.#hasStock(product.promotionQty)} ${product.promotion}`,
         );
         Console.print(
-          `- ${product.name} ${this.#formatPrice(product.price)}원 ${generalStockStatus}`,
+          `- ${product.name} ${this.#formatPrice(product.price)}원 ${this.#hasStock(product.generalQty)}`,
         );
-      } else {
-        const generalStockStatus = this.#hasStock(product.generalQty);
-        Console.print(
-          `- ${product.name} ${this.#formatPrice(product.price)}원 ${generalStockStatus}`,
-        );
+        return;
       }
-
-      printedNames.add(product.name);
+      Console.print(
+        `- ${product.name} ${this.#formatPrice(product.price)}원 ${this.#hasStock(product.generalQty)}`,
+      );
     });
   }
 
