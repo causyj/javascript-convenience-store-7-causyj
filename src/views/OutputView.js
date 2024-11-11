@@ -7,6 +7,7 @@ class OutputView {
   #formatPrice(price) {
     return new Intl.NumberFormat("ko-KR").format(price);
   }
+  
   #hasStock(quantity) {
     if (quantity === 0) {
       return "재고 없음";
@@ -15,14 +16,13 @@ class OutputView {
   }
 
   #first(productList) {
-    productList.forEach((product) => {
-      const productQty =
-        product.promotion === "" ? product.generalQty : product.promotionQty;
+    const productLines = productList.map((product) => {
+      const productQty = product.promotion === "" ? product.generalQty : product.promotionQty;
       const quantityStockStatus = this.#hasStock(productQty);
-      Console.print(
-        `- ${product.name} ${this.#formatPrice(product.price)}원 ${quantityStockStatus} ${product.promotion}`
-      );
+      return `- ${product.name} ${this.#formatPrice(product.price)}원 ${quantityStockStatus} ${product.promotion}`.trim();
     });
+  
+    productLines.forEach(line => Console.print(line));
   }
 
   #next(productList) {
@@ -52,9 +52,9 @@ class OutputView {
   }
 
   printProductList(productList) {
-    Console.print(
-      "안녕하세요. W편의점입니다.\n현재 보유하고 있는 상품입니다:\n"
-    );
+    // Console.print(
+    //   "안녕하세요. W편의점입니다.\n현재 보유하고 있는 상품입니다:\n"
+    // );
     let flag = 0;
     if (this.flag === 0) {
       this.#first(productList);
