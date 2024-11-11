@@ -3,7 +3,9 @@ import { isValidatePositiveInteger } from '../utils/validatorUtils.js';
 class InputValidator {
   static validateUserPurchaseInput(input) {
     if (!input.match(/\[.+?-\d+\]/)) {
-      throw new Error('[ERROR] [상품-수량]의 형식에 맞게 입력해주세요');
+      throw new Error(
+        '올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요.',
+      );
     }
   }
 
@@ -15,13 +17,15 @@ class InputValidator {
 
   static #validateQuantity(quantity) {
     if (!isValidatePositiveInteger(quantity)) {
-      throw new Error('[ERROR] 상품의 수량을 다시 입력해주세요');
+      throw new Error(
+        '올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요.',
+      );
     }
   }
 
   static #validateProductExists(name, productNameList) {
     if (!productNameList.includes(name)) {
-      throw new Error('[ERROR] 편의점에 없는 상품입니다.');
+      throw new Error('[ERROR] 존재하지 않는 상품입니다. 다시 입력해 주세요.');
     }
   }
 
@@ -36,7 +40,7 @@ class InputValidator {
   static validateYesNoInput(input) {
     const trimmedInput = input.trim().toUpperCase();
     if (trimmedInput !== 'Y' && trimmedInput !== 'N') {
-      throw new Error('[ERROR] Y 또는 N으로 대답해주세요.');
+      throw new Error('[ERROR] 잘못된 입력입니다. 다시 입력해 주세요.');
     }
   }
 }
