@@ -269,14 +269,24 @@ class CStoreController {
   }
 
   // 1
+  // async #processPromotion(purchaseItems) {
+  //   const processedItems = await Promise.all(
+  //     purchaseItems.map(async (purchaseItem) =>
+  //       this.#processSingleItemWithPromotion(purchaseItem)
+  //     )
+  //   );
+  //   return processedItems.flat();
+  // }
   async #processPromotion(purchaseItems) {
-    const processedItems = await Promise.all(
-      purchaseItems.map(async (purchaseItem) =>
-        this.#processSingleItemWithPromotion(purchaseItem)
-      )
-    );
-    return processedItems.flat();
-  }
+    const processedItems = [];
+    
+    for (const purchaseItem of purchaseItems) {
+        const itemResult = await this.#processSingleItemWithPromotion(purchaseItem);
+        processedItems.push(...itemResult);
+    }
+    
+    return processedItems;
+}
 
   #printProductList() {
     const productList = this.inventoryService.getAllProducts();
