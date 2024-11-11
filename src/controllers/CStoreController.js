@@ -234,6 +234,10 @@ class CStoreController {
     if (product.promotion !== "" && this.#isPromotionValid(product)) {
       return await this.#getPromotionResult(purchaseItem, product);
     }
+    if(!this.#isPromotionValid(product)){
+      product.promotion =  "";
+    }
+    
     return [{ product, purchasedQty: purchaseItem.purchasedQty }];
   }
 
