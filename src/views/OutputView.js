@@ -19,7 +19,7 @@ class OutputView {
     const productLines = productList.map((product) => {
       const productQty = product.promotion === "" ? product.generalQty : product.promotionQty;
       const quantityStockStatus = this.#hasStock(productQty);
-      return `- ${product.name} ${this.#formatPrice(product.price)}원 ${quantityStockStatus} ${product.promotion}`.trim();
+      return `- ${product.name} ${this.#formatPrice(product.price)}원 ${quantityStockStatus} ${product.promotion}`;
     });
   
     productLines.forEach(line => Console.print(line));
@@ -52,10 +52,10 @@ class OutputView {
   }
 
   printProductList(productList) {
-    // Console.print(
-    //   "안녕하세요. W편의점입니다.\n현재 보유하고 있는 상품입니다:\n"
-    // );
-    let flag = 0;
+    Console.print(
+      "안녕하세요. W편의점입니다.\n현재 보유하고 있는 상품입니다\n"
+    );
+
     if (this.flag === 0) {
       this.#first(productList);
       this.flag = 1;
@@ -103,12 +103,13 @@ class OutputView {
     const totalDiscount = totalPromotionDiscount + membershipDiscount;
     const finalPayment = totalPurchaseAmount - totalDiscount;
 
+
     Console.print(
       `총구매액\t${count}\t${this.#formatPrice(totalPurchaseAmount)}`
     );
     Console.print(`행사할인\t\t-${this.#formatPrice(totalPromotionDiscount)}`);
     Console.print(`멤버십할인\t\t-${this.#formatPrice(membershipDiscount)}`);
-    Console.print(`내실돈\t\t\t ${this.#formatPrice(finalPayment)}`);
+    Console.print(`내실돈\t\t\t${this.#formatPrice(finalPayment)}`);
   }
 }
 export default OutputView;
