@@ -5,7 +5,7 @@ class App {
   async run() {
     try {
       const cstoreController = new CStoreController();
-      cstoreController.start();
+      await cstoreController.start();
     } catch (error) {
       Console.print(error.message);
     }

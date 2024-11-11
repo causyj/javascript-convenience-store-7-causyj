@@ -81,7 +81,7 @@ const run = async ({
   // when
   const app = new App();
   await app.run();
-  await new Promise((resolve) => setTimeout(resolve, 100));
+
   const output = getOutput(logSpy);
 
   // then
