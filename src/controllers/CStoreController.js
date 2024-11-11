@@ -261,12 +261,15 @@ class CStoreController {
   }
 
   async #processPromotion(purchaseItems) {
-    const processedItems = await Promise.all(
-      purchaseItems.map((purchaseItem) =>
-        this.#processSingleItemWithPromotion(purchaseItem),
-      ),
-    );
-    return processedItems.flat();
+    const processedItems = [];
+    // eslint-disable-next-line no-restricted-syntax
+    for (const purchaseItem of purchaseItems) {
+      const itemResult =
+        // eslint-disable-next-line no-await-in-loop
+        await this.#processSingleItemWithPromotion(purchaseItem);
+      processedItems.push(...itemResult);
+    }
+    return processedItems;
   }
 
   #printProductList() {
